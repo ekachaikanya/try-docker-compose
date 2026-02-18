@@ -1,9 +1,10 @@
 version: '3.8'
 
 services:
-  # 1. Nginx (web server)
+  # 1. Web Server (Nginx)
   web:
     image: nginx:latest
+    container_name: my-web-server  # <-- ตั้งชื่อ Container
     ports:
       - "8080:80"
     volumes:
@@ -11,17 +12,22 @@ services:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       - php
+    networks:
+      - my-web-net                 # <-- ระบุ Network
 
-  # 2. PHP-FPM (PHP runtime)
+  # 2. PHP Processor
   php:
-    # อันนี้เป็น image php ที่มี mysqli ติดมาให้แล้ว (bitnami นิยมใช้และง่าย)
     image: bitnami/php-fpm:8.1
+    container_name: my-php-fpm     # <-- ตั้งชื่อ Container
     volumes:
       - ./html:/var/www/html
+    networks:
+      - my-web-net                 # <-- ระบุ Network
 
-  # 3. MariaDB (ฐานข้อมูล)
+  # 3. Database (MariaDB)
   db:
     image: mariadb:10.6
+    container_name: my-mariadb     # <-- ตั้งชื่อ Container
     environment:
       MARIADB_ROOT_PASSWORD: root
       MARIADB_DATABASE: mydatabase
@@ -29,6 +35,13 @@ services:
       MARIADB_PASSWORD: password
     volumes:
       - db_data:/var/lib/mysql
+    networks:
+      - my-web-net                 # <-- ระบุ Network
 
 volumes:
   db_data:
+
+# ประกาศสร้าง Network ใหม่
+networks:
+  my-web-net:
+    driver: bridge
